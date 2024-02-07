@@ -1,25 +1,20 @@
-const User = require("../models/user");
 const errors = require("../utils/errors");
+const User = require("../models/user");
 
-//GET all users
+// GET all users
 
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        res.status(errors.not_found).send({ message: err.message });
-      } else if (err.name === "CastError") {
-        res.status(errors.bad_request).send({ message: err.message });
-      }
       return res
         .status(errors.internal_server_error)
         .send({ message: "An error has occurred on the server" });
     });
 };
 
-//POST the user
+// POST the user
 
 const creatingUser = (req, res) => {
   const { name, avatar } = req.body;
@@ -33,8 +28,6 @@ const creatingUser = (req, res) => {
         res
           .status(errors.bad_request)
           .send({ message: "Requested resource not found" });
-      } else if (err.name === "DocumentNotFoundError") {
-        res.status(errors.not_found).send({ message: err.message });
       }
       return res
         .status(errors.internal_server_error)
@@ -42,7 +35,7 @@ const creatingUser = (req, res) => {
     });
 };
 
-//GET the user aka one single user
+// GET the user aka one single user
 
 const getUser = (req, res) => {
   const { userid } = req.params;
@@ -55,9 +48,9 @@ const getUser = (req, res) => {
       console.error(err);
       console.log(err.name);
       if (err.name === "DocumentNotFoundError") {
-        res.status(errors.not_found).send({ message: err.message });
+        res.status(errors.not_found).send({ message: "No Requested resource" });
       } else if (err.name === "CastError") {
-        res.status(errors.bad_request).send({ message: err.message });
+        res.status(errors.bad_request).send({ message: "Invalid data" });
       }
       return res
         .status(errors.internal_server_error)
