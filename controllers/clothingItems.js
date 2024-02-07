@@ -1,4 +1,5 @@
 const clothingItem = require("../models/clothingItem");
+const errors = require("../utils/errors");
 
 //POST the new Clothing item
 
@@ -15,7 +16,14 @@ const createClothingItem = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send({ message: "Error from createItem", err });
+      if (err.name === "ValidationError") {
+        res
+          .status(errors.bad_request)
+          .send({ message: "Requested resource was invalid " });
+      }
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server", err });
     });
 };
 
@@ -32,8 +40,14 @@ const getAllClothingItems = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      console.log(err.name);
-      res.status(500).send({ message: "Error from getItem", err });
+      if (err.name === "ValidationError") {
+        res
+          .status(errors.bad_request)
+          .send({ message: "Requested resource was invalid " });
+      }
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server", err });
     });
 };
 
@@ -45,14 +59,72 @@ const deleteClothingItem = (req, res) => {
 
   clothingItem
     .findByIdAndRemove(req.params._id)
+    .orFail()
     .then((user) => {
       res.send({ data: user });
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send({ message: "Error from deleteItem", err });
+      if (err.name === "ValidationError") {
+        res
+          .status(errors.bad_request)
+          .send({ message: "Requested resource was invalid " });
+      } else if (err.name === "CastError") {
+        res.status(errors.not_found).send({ message: "No Requested resource" });
+      }
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server", err });
     });
 };
+
+// PUT Likes on item
+
+module.exports.likeItem = (req, res) =>
+  clothingItem
+    .findByIdAndUpdate(
+      req.params.itemId,
+      { $addToSet: { likes: req.user._id } }, // add _id to the array if it's not there yet
+      { new: true },
+    )
+    .then((addLike) => {
+      res.send({ data: addLike });
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "ValidationError") {
+        res
+          .status(errors.bad_request)
+          .send({ message: "Requested resource was invalid " });
+      }
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server", err });
+    });
+
+module.exports.dislikeItem = (req, res) =>
+  clothingItem
+    .findByIdAndUpdate(
+      req.params.itemId,
+      { $pull: { likes: req.user._id } }, // remove _id from the array
+      { new: true },
+    )
+    .then((removeLike) => {
+      res.send({ data: removeLike });
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "ValidationError") {
+        res
+          .status(errors.bad_request)
+          .send({ message: "Requested resource was invalid " });
+      } else if (err.name === "CastError") {
+        res.status(errors.not_found).send({ message: "No Requested resource" });
+      }
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server", err });
+    });
 
 module.exports = {
   getAllClothingItems,

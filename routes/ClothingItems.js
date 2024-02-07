@@ -6,8 +6,8 @@ const {
 
 const router = require("express").Router();
 
-router.get("/items", getAllClothingItems);
-router.post("/items", createClothingItem);
-router.delete("/items/:itemsId", deleteClothingItem);
+router.get("/", getAllClothingItems);
+router.post("/", createClothingItem);
+router.delete("/:itemsId", deleteClothingItem);
 
 module.exports = router;

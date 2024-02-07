@@ -1,13 +1,21 @@
 const User = require("../models/user");
+const errors = require("../utils/errors");
 
 //GET all users
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.send(users))
+    .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      return res.status(500).send({ message: err.message });
+      if (err.name === "DocumentNotFoundError") {
+        res.status(errors.not_found).send({ message: err.message });
+      } else if (err.name === "CastError") {
+        res.status(errors.bad_request).send({ message: err.message });
+      }
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -22,11 +30,15 @@ const creatingUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
+        res
+          .status(errors.bad_request)
           .send({ message: "Requested resource not found" });
+      } else if (err.name === "DocumentNotFoundError") {
+        res.status(errors.not_found).send({ message: err.message });
       }
-      return res.status(500).send({ message: err.message });
+      return res
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -43,13 +55,13 @@ const getUser = (req, res) => {
       console.error(err);
       console.log(err.name);
       if (err.name === "DocumentNotFoundError") {
-        res.status(404).send({ message: err.message });
+        res.status(errors.not_found).send({ message: err.message });
       } else if (err.name === "CastError") {
-        res.status(400).send({ message: err.message });
+        res.status(errors.bad_request).send({ message: err.message });
       }
       return res
-        .status(500)
-        .send({ message: "error not working for geting ids" });
+        .status(errors.internal_server_error)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
