@@ -25,9 +25,7 @@ const creatingUser = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res
-          .status(errors.bad_request)
-          .send({ message: "Requested resource not found" });
+        return res.status(errors.bad_request).send({ message: "Invalid data" });
       }
       return res
         .status(errors.internal_server_error)
@@ -51,10 +49,11 @@ const getUser = (req, res) => {
         res.status(errors.not_found).send({ message: "No Requested resource" });
       } else if (err.name === "CastError") {
         res.status(errors.bad_request).send({ message: "Invalid data" });
+      } else {
+        res
+          .status(errors.internal_server_error)
+          .send({ message: "An error has occurred on the server" });
       }
-      return res
-        .status(errors.internal_server_error)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
