@@ -4,10 +4,7 @@ const clothingItem = require("../models/clothingItem");
 // POST the new Clothing item
 
 const createClothingItem = (req, res) => {
-  console.log(req);
-  console.log(req.body);
-
-  const { name, weather, imageUrl, owner } = req.body;
+  const { name, weather, imageUrl } = req.body;
 
   clothingItem
     .create({ name, weather, imageUrl, owner: req.user._id })
@@ -40,7 +37,7 @@ const getAllClothingItems = (req, res) => {
       console.error(err);
       return res
         .status(errors.internal_server_error)
-        .send({ message: "An error has occurred on the server", err });
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -65,7 +62,7 @@ const deleteClothingItem = (req, res) => {
       } else {
         res
           .status(errors.internal_server_error)
-          .send({ message: "An error has occurred on the server", err });
+          .send({ message: "An error has occurred on the server" });
       }
     });
 };
@@ -92,7 +89,7 @@ const likeItem = (req, res) =>
       } else {
         res
           .status(errors.internal_server_error)
-          .send({ message: "An error has occurred on the server", err });
+          .send({ message: "An error has occurred on the server" });
       }
     });
 
@@ -118,7 +115,7 @@ const dislikeItem = (req, res) =>
       } else {
         res
           .status(errors.internal_server_error)
-          .send({ message: "An error has occurred on the server", err });
+          .send({ message: "An error has occurred on the server" });
       }
     });
 
