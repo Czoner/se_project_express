@@ -1,5 +1,6 @@
 const errors = require("../utils/errors");
 const User = require("../models/user");
+const { JWT_SECRET } = require("../utils/config");
 
 // GET all users
 
@@ -17,15 +18,22 @@ const getUsers = (req, res) => {
 // POST the user
 
 const creatingUser = (req, res) => {
-  const { name, avatar } = req.body;
-  User.create({ name, avatar })
+  const { name, avatar, email, password } = req.body;
+  console.log(req.body);
+  const hashedpassword = bcrypt.hash(password, 10);
+  User.create({ name, avatar, email, password: hashedpassword })
     .then((user) => {
       res.status(201).send(user);
+      if (!email) {
+        throw new Error({ message: "a MongoDB duplicate error" });
+      }
     })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
         return res.status(errors.bad_request).send({ message: "Invalid data" });
+      } else if (err.name === "CastError") {
+        return res.status(1100).send({ message: err.message });
       }
       return res
         .status(errors.internal_server_error)
@@ -44,7 +52,6 @@ const getUser = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      console.log(err.name);
       if (err.name === "DocumentNotFoundError") {
         res.status(errors.not_found).send({ message: "No Requested resource" });
       } else if (err.name === "CastError") {
@@ -57,4 +64,22 @@ const getUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, creatingUser, getUser };
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.send(token);
+    })
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "Unauthorized") {
+        res.status(401).send({ message: err.message });
+      }
+    });
+};
+
+module.exports = { getUsers, creatingUser, getUser, login };
