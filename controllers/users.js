@@ -1,6 +1,7 @@
 const errors = require("../utils/errors");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
+const bcrypt = require("bcryptjs");
 
 // GET all users
 
@@ -71,15 +72,19 @@ const login = (req, res) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
+      console.log("JWT_SECRET:", JWT_SECRET);
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.send(token);
+      console.log("Generated token:", token);
+      res.send({ token });
     })
     .catch((err) => {
       console.error(err);
       if (err.name === "Unauthorized") {
         res.status(401).send({ message: err.message });
+      } else {
+        res.status(500).json({ message: "Internal Server Error" });
       }
     });
 };
