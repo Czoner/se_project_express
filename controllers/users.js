@@ -43,12 +43,12 @@ const creatingUser = (req, res) => {
 
 // GET the user aka one single user
 
-const getUser = (req, res) => {
+const getCurrentUser = (req, res) => {
   const { userid } = req.params;
   User.findById(userid)
     .orFail()
     .then((user) => {
-      res.status(200).send(user);
+      res.status(200).send(user._id);
     })
     .catch((err) => {
       console.error(err);
@@ -63,6 +63,8 @@ const getUser = (req, res) => {
       }
     });
 };
+
+// SIGNIN for the user
 
 const login = (req, res) => {
   const { email, password } = req.body;
@@ -82,4 +84,33 @@ const login = (req, res) => {
     });
 };
 
-module.exports = { getUsers, creatingUser, getUser, login };
+// PATCH update the current user
+
+const updateProfile = (req, res) => {
+  const { name, avatar } = req.body;
+  console.log(req.user.id);
+  User.findOneAndUpdate(
+    { _id: req.user.id },
+    { name, avatar },
+    { new: true, runValidators: true },
+  )
+    .then((user) => {
+      res.status(200).send(user);
+      console.log(res.statusCode);
+    })
+    .catch((err) => {
+      console.error(err);
+      console.log("Caught error:", err);
+      if (err.name === "Unauthorized") {
+        res.status(401).send({ message: "BOOM" });
+      }
+    });
+};
+
+module.exports = {
+  getUsers,
+  creatingUser,
+  getCurrentUser,
+  login,
+  updateProfile,
+};

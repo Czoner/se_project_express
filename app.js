@@ -1,6 +1,7 @@
 const express = require("express");
 const { default: mongoose } = require("mongoose");
 const mainRouter = require("./routes/index");
+const { middleware } = require("./middlewares/auth");
 
 const app = express();
 
@@ -13,7 +14,7 @@ app.use((req, res, next) => {
   };
   next();
 });
-app.use("/", mainRouter);
+app.use("/", middleware, mainRouter);
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
