@@ -3,6 +3,8 @@ const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
 const bcrypt = require("bcryptjs");
 
+const jwt = require("jsonwebtoken");
+
 // GET all users
 
 const getUsers = (req, res) => {
@@ -18,23 +20,28 @@ const getUsers = (req, res) => {
 
 // POST the user
 
-const creatingUser = (req, res) => {
+const creatingUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
   console.log(req.body);
-  const hashedpassword = bcrypt.hash(password, 10);
-  User.create({ name, avatar, email, password: hashedpassword })
+
+  const hashedpassword = await bcrypt.hash(password, 10);
+  await User.create({ name, avatar, email, password })
     .then((user) => {
-      res.status(201).send(user);
       if (!email) {
-        throw new Error({ message: "a MongoDB duplicate error" });
+        return Promise.reject(
+          new Error({ message: "a MongoDB duplicate error" }),
+        );
       }
+      res
+        .status(201)
+        .send({ name: user.name, avatar: user.avatar, email: user.email });
     })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
         return res.status(errors.bad_request).send({ message: "Invalid data" });
-      } else if (err.name === "CastError") {
-        return res.status(1100).send({ message: err.message });
+      } else if (err.name === "MongoServerError") {
+        return res.status(errors.Conflict_error).send({ message: err.message });
       }
       return res
         .status(errors.internal_server_error)
@@ -73,18 +80,23 @@ const login = (req, res) => {
   User.findUserByCredentials(email, password)
     .then((user) => {
       console.log("JWT_SECRET:", JWT_SECRET);
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      const token = jwt.sign({ _id: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      console.log("Generated token:", token);
+
       res.send({ token });
     })
     .catch((err) => {
-      console.error(err);
-      if (err.name === "Unauthorized") {
-        res.status(401).send({ message: err.message });
+      console.error(err.name);
+      if (
+        err.message === "Incorrect email or password" &&
+        err.name === "Error"
+      ) {
+        return res.status(400).send({ message: err.message });
+      } else if (err.name === "Unauthorized") {
+        return res.status(401).send({ message: err.message });
       } else {
-        res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ message: "Internal Server Error" });
       }
     });
 };
@@ -93,7 +105,7 @@ const login = (req, res) => {
 
 const updateProfile = (req, res) => {
   const { name, avatar } = req.body;
-  console.log(req.user.id);
+  console.log(req.user._id);
   User.findOneAndUpdate(
     { _id: req.user.id },
     { name, avatar },
@@ -105,8 +117,7 @@ const updateProfile = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      console.log("Caught error:", err);
-      if (err.name === "Unauthorized") {
+      if (err.name === "UnauthorizedError") {
         res.status(401).send({ message: "BOOM" });
       }
     });
