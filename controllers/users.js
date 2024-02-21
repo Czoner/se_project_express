@@ -23,16 +23,18 @@ const getUsers = (req, res) => {
 const creatingUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
   console.log(req.body);
+  if (!email) {
+    return res.status(400).send({ message: "Email is missing or null" });
+  }
+
+  if (!password) {
+    return res.status(400).send({ message: "Password is missing or null" });
+  }
 
   const hashedpassword = await bcrypt.hash(password, 10);
-  await User.create({ name, avatar, email, password })
+  await User.create({ name, avatar, email, hashedpassword })
     .then((user) => {
-      if (!email) {
-        return Promise.reject(
-          new Error({ message: "a MongoDB duplicate error" }),
-        );
-      }
-      res
+      return res
         .status(201)
         .send({ name: user.name, avatar: user.avatar, email: user.email });
     })
@@ -40,7 +42,7 @@ const creatingUser = async (req, res) => {
       console.error(err);
       if (err.name === "ValidationError") {
         return res.status(errors.bad_request).send({ message: "Invalid data" });
-      } else if (err.name === "MongoServerError") {
+      } else if (err.name === "MongoServerError" || err.code === 11001) {
         return res.status(errors.Conflict_error).send({ message: err.message });
       }
       return res
@@ -76,22 +78,21 @@ const getCurrentUser = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
+  if (!email) {
+    return res.status(400).send({ message: "Email is missing or null" });
+  }
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      console.log("JWT_SECRET:", JWT_SECRET);
-      const token = jwt.sign({ _id: user.id }, JWT_SECRET, {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
 
-      res.send({ token });
+      res.status(200).send({ token });
     })
     .catch((err) => {
-      console.error(err.name);
-      if (
-        err.message === "Incorrect email or password" &&
-        err.name === "Error"
-      ) {
+      console.error(err);
+      if (err.message === "Incorrect email or password") {
         return res.status(400).send({ message: err.message });
       } else if (err.name === "Unauthorized") {
         return res.status(401).send({ message: err.message });
