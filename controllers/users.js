@@ -55,19 +55,22 @@ const creatingUser = async (req, res) => {
 
 const getCurrentUser = (req, res) => {
   const { userid } = req.params;
+  console.log(req.params);
   User.findById(userid)
     .orFail()
     .then((user) => {
-      res.status(200).send(user._id);
+      return res.status(200).send(user._id);
     })
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        res.status(errors.not_found).send({ message: "No Requested resource" });
+        return res
+          .status(errors.not_found)
+          .send({ message: "No Requested resource" });
       } else if (err.name === "CastError") {
-        res.status(errors.bad_request).send({ message: "Invalid data" });
+        return res.status(errors.bad_request).send({ message: "Invalid data" });
       } else {
-        res
+        return res
           .status(errors.internal_server_error)
           .send({ message: "An error has occurred on the server" });
       }
@@ -84,6 +87,9 @@ const login = (req, res) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
+      if (!user) {
+        return res.status(400).send({ message: "Invalid email or password" });
+      }
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });

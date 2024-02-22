@@ -5,13 +5,13 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    require: true,
+    required: true,
     minlength: 2,
     maxlength: 30,
   },
   avatar: {
     type: String,
-    require: true,
+    required: true,
     validate: {
       validator(value) {
         return validator.isURL(value);
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    require: true,
+    required: true,
     unique: true,
     validate: {
       validator(value) {
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    require: true,
+    required: true,
     select: false,
     minlength: 3,
   },
@@ -51,12 +51,12 @@ userSchema.statics.findUserByCredentials = function findUserByCredentials(
       if (!user) {
         return Promise.reject(new Error("Incorrect email or password"));
       }
-      console.log(user.email, user.password);
       return bcrypt.compare(password, user.password).then((matched) => {
+        console.log(matched);
         if (!matched) {
           return Promise.reject(new Error("Incorrect email or password 2"));
         }
-        console.log(user.email, user.password);
+
         return user;
       });
     });
