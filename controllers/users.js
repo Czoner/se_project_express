@@ -31,8 +31,8 @@ const creatingUser = async (req, res) => {
     return res.status(400).send({ message: "Password is missing or null" });
   }
 
-  const hashedpassword = await bcrypt.hash(password, 10);
-  await User.create({ name, avatar, email, hashedpassword })
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await User.create({ name, avatar, email, password: hashedPassword })
     .then((user) => {
       return res
         .status(201)
@@ -54,12 +54,11 @@ const creatingUser = async (req, res) => {
 // GET the user aka one single user
 
 const getCurrentUser = (req, res) => {
-  const { userid } = req.params;
-  console.log(req.params);
-  User.findById(userid)
+  const userId = req.user._id;
+  User.findById(userId)
     .orFail()
     .then((user) => {
-      return res.status(200).send(user._id);
+      return res.status(200).send(user);
     })
     .catch((err) => {
       console.error(err);
@@ -112,15 +111,13 @@ const login = (req, res) => {
 
 const updateProfile = (req, res) => {
   const { name, avatar } = req.body;
-  console.log(req.user._id);
-  User.findOneAndUpdate(
-    { _id: req.user.id },
-    { name, avatar },
-    { new: true, runValidators: true },
+  User.findByIdAndUpdate(
+    { _id: req.user._id },
+    { name: name, avatar: avatar },
+    { new: true, runValidators: true, upsert: true },
   )
     .then((user) => {
-      res.status(200).send(user);
-      console.log(res.statusCode);
+      res.status(200).send({ data: user });
     })
     .catch((err) => {
       console.error(err);
