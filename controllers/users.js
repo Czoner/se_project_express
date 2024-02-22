@@ -117,7 +117,7 @@ const updateProfile = (req, res) => {
     { new: true, runValidators: true, upsert: true },
   )
     .then((user) => {
-      res.status(200).send({ data: user });
+      res.status(200).send({ user });
     })
     .catch((err) => {
       console.error(err);

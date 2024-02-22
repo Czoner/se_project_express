@@ -44,17 +44,18 @@ const getAllClothingItems = (req, res) => {
 // DELETE the Clothing item
 
 const deleteClothingItem = (req, res) => {
+  console.log(req.params);
   clothingItem
     .findById(req.params.itemsId)
+    .orFail()
     .then((item) => {
-      if (!item.owner.equals(req.user.id)) {
+      if (!item.owner.equals(req.user._id)) {
         return res
           .status(errors.Forbidden_error)
           .send({ message: "Forbidden Error" });
       }
       return clothingItem.findByIdAndRemove(req.params.itemsId);
     })
-    .orFail()
     .then((user) => {
       res.send({ data: user });
     })
