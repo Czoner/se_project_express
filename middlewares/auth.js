@@ -1,4 +1,6 @@
 const jwt = require("jsonwebtoken");
+const errors = require("../utils/errors");
+
 const { JWT_SECRET } = require("../utils/config");
 
 module.exports.middleware = (req, res, next) => {
@@ -6,7 +8,7 @@ module.exports.middleware = (req, res, next) => {
   console.log(req.headers);
   if (!authorization || !authorization.startsWith("Bearer ")) {
     console.error("Authorization header is missing", authorization);
-    return res.status(401).send({ message: "Unauthorized" });
+    return res.status(errors.Unauthorized).send({ message: "Unauthorized" });
   }
 
   const token = authorization.replace("Bearer ", "");
@@ -16,9 +18,9 @@ module.exports.middleware = (req, res, next) => {
     payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
     console.error("JWT verification failed:", err);
-    return res.status(401).send({ message: "Unauthorized" });
+    return res.status(errors.Unauthorized).send({ message: "Unauthorized" });
   }
 
   req.user = payload;
-  next();
+  return next();
 };

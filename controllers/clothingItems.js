@@ -54,10 +54,12 @@ const deleteClothingItem = (req, res) => {
           .status(errors.Forbidden_error)
           .send({ message: "Forbidden Error" });
       }
-      return clothingItem.findByIdAndRemove(req.params.itemsId);
-    })
-    .then((user) => {
-      res.send({ data: user });
+      return console.log(req.params.itemsId);
+    });
+  return clothingItem
+    .findByIdAndRemove(req.params.itemsId)
+    .then((deletedItem) => {
+      res.send({ data: deletedItem });
     })
     .catch((err) => {
       console.error(err);
