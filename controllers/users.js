@@ -34,10 +34,11 @@ const creatingUser = async (req, res) => {
         res.status(errors.bad_request).send({ message: "Invalid data" });
       } else if (err.name === "MongoServerError" || err.code === 11001) {
         res.status(errors.Conflict_error).send({ message: err.message });
+      } else {
+        res
+          .status(errors.internal_server_error)
+          .send({ message: "An error has occurred on the server" });
       }
-      return res
-        .status(errors.internal_server_error)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -54,10 +55,11 @@ const getCurrentUser = (req, res) => {
         res.status(errors.not_found).send({ message: "No Requested resource" });
       } else if (err.name === "CastError") {
         res.status(errors.bad_request).send({ message: "Invalid data" });
+      } else {
+        res
+          .status(errors.internal_server_error)
+          .send({ message: "An error has occurred on the server" });
       }
-      return res
-        .status(errors.internal_server_error)
-        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -83,10 +85,11 @@ const login = (req, res) => {
       console.error(err);
       if (err.message === "Incorrect email or password") {
         res.status(errors.Unauthorized).send({ message: err.message });
+      } else {
+        res
+          .status(errors.internal_server_error)
+          .json({ message: "Internal Server Error" });
       }
-      return res
-        .status(errors.internal_server_error)
-        .json({ message: "Internal Server Error" });
     });
 };
 
@@ -106,10 +109,11 @@ const updateProfile = (req, res) => {
       console.error(err);
       if (err.name === "ValidationError") {
         res.status(errors.bad_request).send({ message: err.message });
+      } else {
+        res
+          .status(errors.internal_server_error)
+          .json({ message: "Internal Server Error" });
       }
-      return res
-        .status(errors.internal_server_error)
-        .json({ message: "Internal Server Error" });
     });
 };
 
