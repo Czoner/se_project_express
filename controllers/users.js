@@ -4,10 +4,14 @@ const errors = require("../utils/errors");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
 
-// POST the user
+// POST the use
 
 const creatingUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
+  console.log("Name:", name);
+  console.log("Avatar:", avatar);
+  console.log("Email:", email);
+  console.log("Password:", password);
   console.log(req.body);
   if (!email) {
     return res
