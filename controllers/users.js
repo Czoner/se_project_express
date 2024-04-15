@@ -8,18 +8,14 @@ const { JWT_SECRET } = require("../utils/config");
 
 const creatingUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
-  console.log("Name:", name);
-  console.log("Avatar:", avatar);
-  console.log("Email:", email);
-  console.log("Password:", password);
-  console.log(req.body);
-  if (!email) {
+
+  if (!{ email }) {
     return res
       .status(errors.bad_request)
       .send({ message: "Email is missing or null" });
   }
 
-  if (!password) {
+  if (!{ password }) {
     return res
       .status(errors.bad_request)
       .send({ message: "Password is missing or null" });
@@ -71,7 +67,7 @@ const getCurrentUser = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
-  if (!email) {
+  if (!{ email }) {
     return res
       .status(errors.bad_request)
       .send({ message: "Email is missing or null" });
