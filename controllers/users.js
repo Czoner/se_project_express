@@ -3,78 +3,84 @@ const jwt = require("jsonwebtoken");
 const errors = require("../utils/errors");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
+const {
+  BadRequestError,
+  UnauthorizedError,
+  NotFoundError,
+  ConflictError,
+} = require("../middlewares/error-handler");
 
 // POST the use
 
-const creatingUser = async (req, res) => {
+const creatingUser = async (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!{ email }) {
-    return res
-      .status(errors.bad_request)
-      .send({ message: "Email is missing or null" });
+    throw new BadRequestError("Email is missing or null");
   }
-
   if (!{ password }) {
-    return res
-      .status(errors.bad_request)
-      .send({ message: "Password is missing or null" });
+    throw new BadRequestError("Password is missing or null");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
   return User.create({ name, avatar, email, password: hashedPassword })
-    .then((user) =>
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError("No user with matching ID found");
+      }
       res
         .status(201)
-        .send({ name: user.name, avatar: user.avatar, email: user.email }),
-    )
+        .send({ name: user.name, avatar: user.avatar, email: user.email });
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res.status(errors.bad_request).send({ message: "Invalid data" });
+        next(new BadRequestError("Invalid data"));
       } else if (err.name === "MongoServerError" || err.code === 11001) {
-        res.status(errors.Conflict_error).send({ message: err.message });
+        next(new ConflictError(err.message));
       } else {
-        res
-          .status(errors.internal_server_error)
-          .send({ message: "An error has occurred on the server" });
+        next(err);
       }
     });
 };
 
 // GET the user aka one single user
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
   return User.findById(userId)
     .orFail()
-    .then((user) => res.status(200).send(user))
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError("No user with matching ID found");
+      }
+      res.status(200).send(user);
+    })
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
-        res.status(errors.not_found).send({ message: "No Requested resource" });
+        next(new NotFoundError("No user with matching ID found"));
       } else if (err.name === "CastError") {
-        res.status(errors.bad_request).send({ message: "Invalid data" });
+        next(new BadRequestError("The name string is in an invalid format"));
       } else {
-        res
-          .status(errors.internal_server_error)
-          .send({ message: "An error has occurred on the server" });
+        next(err);
       }
     });
 };
 
 // SIGNIN for the user
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   if (!{ email }) {
-    return res
-      .status(errors.bad_request)
-      .send({ message: "Email is missing or null" });
+    throw new BadRequestError("Email is missing or null");
   }
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
+      if (!user) {
+        throw new NotFoundError("No user with matching ID found");
+      }
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
@@ -84,11 +90,9 @@ const login = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.message === "Incorrect email or password") {
-        res.status(errors.Unauthorized).send({ message: err.message });
+        next(new UnauthorizedError("Incorrect email or password"));
       } else {
-        res
-          .status(errors.internal_server_error)
-          .json({ message: "Internal Server Error" });
+        next(err);
       }
     });
 };
@@ -103,16 +107,17 @@ const updateProfile = (req, res) => {
     { new: true, runValidators: true },
   )
     .then((user) => {
+      if (!user) {
+        throw new NotFoundError("No user with matching ID found");
+      }
       res.status(200).send({ user });
     })
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        res.status(errors.bad_request).send({ message: err.message });
+        next(new BadRequestError("The name string is in an invalid format"));
       } else {
-        res
-          .status(errors.internal_server_error)
-          .json({ message: "Internal Server Error" });
+        next(err);
       }
     });
 };
