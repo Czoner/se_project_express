@@ -6,6 +6,8 @@ The back-end project is focused on creating a server for the WTWR application. Y
 
 This is the back end portion of the WTWR application. This is to handle errors and to set up my own API. Also to set up the database and the user authorization.
 
+Here is the Domain name: https://wtwr-web.happyforever.com/
+
 ### Technologies that were used
 
 - Postman
