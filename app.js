@@ -1,4 +1,6 @@
 require("dotenv").config();
+import { limiter } from "./utils/limiter";
+const helmet = require("helmet");
 const express = require("express");
 const { default: mongoose } = require("mongoose");
 const { errors } = require("celebrate");
@@ -11,6 +13,8 @@ const app = express();
 
 const { PORT = 3001 } = process.env;
 
+app.use(limiter);
+app.use(helmet());
 app.use(express.json());
 app.use(cors());
 app.use(requestLogger);
