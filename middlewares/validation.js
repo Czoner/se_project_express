@@ -9,17 +9,29 @@ const validateURL = (value, helpers) => {
 };
 
 const validateId = celebrate({
-  params: Joi.object()
-    .keys({
-      postId: Joi.string().alphanum().length(24),
-      headers: Joi.object().keys({}),
-      query: Joi.object().keys({}),
-    })
-    .unknown(true),
+  params: Joi.object().keys({
+    itemsId: Joi.string().alphanum().length(24),
+  }),
 });
 
-const BodyValidation = celebrate({
-  clothingItemBody: Joi.object().keys({
+const UpdateProfValidation = celebrate({
+  updateProfBody: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30).messages({
+      "string.min": 'The minimum length of the "name" field is 2',
+      "string.max": 'The maximum length of the "name" field is 30',
+      "string.empty": 'The "name" field must be filled in',
+    }),
+    avatar: Joi.string().required().custom(validateURL).messages({
+      "string.url": 'the "imageUrl" field must be a valid url',
+    }),
+  }),
+});
+
+const validatePutClothingBody = celebrate({
+  params: Joi.object().keys({
+    itemsId: Joi.string().alphanum().length(24),
+  }),
+  body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
       "string.max": 'The maximum length of the "name" field is 30',
@@ -30,6 +42,23 @@ const BodyValidation = celebrate({
       "string.uri": 'the "imageUrl" field must be a valid url',
     }),
   }),
+});
+
+const ClothingValidation = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30).messages({
+      "string.min": 'The minimum length of the "name" field is 2',
+      "string.max": 'The maximum length of the "name" field is 30',
+      "string.empty": 'The "name" field must be filled in',
+    }),
+    imageURL: Joi.string().required().custom(validateURL).messages({
+      "string.empty": 'The "imageUrl" field must be filled in',
+      "string.uri": 'the "imageUrl" field must be a valid url',
+    }),
+  }),
+});
+
+const UserInfoBodyValidation = celebrate({
   userInfoBody: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
@@ -46,6 +75,9 @@ const BodyValidation = celebrate({
       "string.empty": "You must enter an password",
     }),
   }),
+});
+
+const AuthenticationBody = celebrate({
   authenticationBody: Joi.object().keys({
     email: Joi.string().required().email().messages({
       "string.empty": "You must enter an email",
@@ -59,4 +91,11 @@ const BodyValidation = celebrate({
   }),
 });
 
-module.exports = { validateId, BodyValidation };
+module.exports = {
+  validateId,
+  ClothingValidation,
+  validatePutClothingBody,
+  AuthenticationBody,
+  UserInfoBodyValidation,
+  UpdateProfValidation,
+};

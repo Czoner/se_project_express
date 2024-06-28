@@ -1,12 +1,7 @@
-const errors = require("../utils/errors");
 const clothingItem = require("../models/clothingItem");
-const {
-  BadRequestError,
-  UnauthorizedError,
-  NotFoundError,
-  ConflictError,
-  ForbiddenError,
-} = require("../middlewares/error-handler");
+const { BadRequestError } = require("../utils/BadRequestError");
+const { NotFoundError } = require("../utils/NotFoundError");
+const { ForbiddenError } = require("../utils/ForbiddenError");
 
 // POST the new Clothing item
 
@@ -29,7 +24,7 @@ const createClothingItem = (req, res, next) => {
 
 // GET all Clothing items
 
-const getAllClothingItems = (req, res) => {
+const getAllClothingItems = (req, res, next) => {
   console.log(req);
   console.log(req.body);
 
@@ -99,7 +94,7 @@ const likeItem = (req, res, next) =>
 
 // DELETE likes on item
 
-const dislikeItem = (req, res) =>
+const dislikeItem = (req, res, next) =>
   clothingItem
     .findByIdAndUpdate(
       req.params.itemsId,
