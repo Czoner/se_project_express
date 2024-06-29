@@ -27,31 +27,15 @@ const UpdateProfValidation = celebrate({
   }),
 });
 
-const validatePutClothingBody = celebrate({
-  params: Joi.object().keys({
-    itemsId: Joi.string().alphanum().length(24),
-  }),
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30).messages({
-      "string.min": 'The minimum length of the "name" field is 2',
-      "string.max": 'The maximum length of the "name" field is 30',
-      "string.empty": 'The "name" field must be filled in',
-    }),
-    imageURL: Joi.string().required().custom(validateURL).messages({
-      "string.empty": 'The "imageUrl" field must be filled in',
-      "string.uri": 'the "imageUrl" field must be a valid url',
-    }),
-  }),
-});
-
 const ClothingValidation = celebrate({
   body: Joi.object().keys({
+    weather: Joi.string().valid("hot", "warm", "cold").required(),
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
       "string.max": 'The maximum length of the "name" field is 30',
       "string.empty": 'The "name" field must be filled in',
     }),
-    imageURL: Joi.string().required().custom(validateURL).messages({
+    imageUrl: Joi.string().required().custom(validateURL).messages({
       "string.empty": 'The "imageUrl" field must be filled in',
       "string.uri": 'the "imageUrl" field must be a valid url',
     }),
@@ -59,7 +43,7 @@ const ClothingValidation = celebrate({
 });
 
 const UserInfoBodyValidation = celebrate({
-  userInfoBody: Joi.object().keys({
+  body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30).messages({
       "string.min": 'The minimum length of the "name" field is 2',
       "string.max": 'The maximum length of the "name" field is 30',
@@ -78,7 +62,7 @@ const UserInfoBodyValidation = celebrate({
 });
 
 const AuthenticationBody = celebrate({
-  authenticationBody: Joi.object().keys({
+  body: Joi.object().keys({
     email: Joi.string().required().email().messages({
       "string.empty": "You must enter an email",
     }),
@@ -86,15 +70,11 @@ const AuthenticationBody = celebrate({
       "string.empty": "You must enter an password",
     }),
   }),
-  idBody: Joi.object().keys({
-    ID: Joi.string().alphanum().length(24),
-  }),
 });
 
 module.exports = {
   validateId,
   ClothingValidation,
-  validatePutClothingBody,
   AuthenticationBody,
   UserInfoBodyValidation,
   UpdateProfValidation,

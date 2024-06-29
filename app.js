@@ -1,10 +1,10 @@
 require("dotenv").config();
-import { limiter } from "./utils/limiter";
 const helmet = require("helmet");
 const express = require("express");
 const { default: mongoose } = require("mongoose");
 const { errors } = require("celebrate");
 const cors = require("cors");
+const limiter = require("./utils/limiter");
 const mainRouter = require("./routes/index");
 const { errorHandler } = require("./middlewares/error-handler");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
